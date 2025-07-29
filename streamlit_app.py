@@ -287,43 +287,22 @@ def student_dashboard():
     with col3:
         st.metric("До сертификата", f"{max(300-total_hours, 0):.1f} ч")
     st.progress(progress)
-    st.subheader("📱 Сканирование QR-кода")
-    tab1, tab2 = st.tabs(["Загрузить изображение", "Ввести данные"])
-    with tab1:
-        uploaded_file = st.file_uploader("Загрузите изображение с QR-кодом", type=['png', 'jpg', 'jpeg'])
-        if uploaded_file and st.button("Сканировать QR-код"):
-            qr_data = decode_qr_from_image(uploaded_file.read())
-            if not qr_data:
-                st.error("QR-код не найден или невалиден")
-            elif not validate_qr_data(qr_data):
-                st.error("QR-код не от Alumni Club Connect")
+    st.subheader("Ввести данные QR-кода")
+    qr_data = st.text_input("Введите данные QR-кода")
+    if qr_data and st.button("Подтвердить участие"):
+        if not validate_qr_data(qr_data):
+            st.error("QR-код не от Alumni Club Connect")
+        else:
+            event = get_event_by_qr(qr_data)
+            if not event:
+                st.error("Мероприятие не найдено")
+            elif get_participation(user.id, event.id):
+                st.error("Вы уже участвовали в этом мероприятии")
             else:
-                event = get_event_by_qr(qr_data)
-                if not event:
-                    st.error("Мероприятие не найдено")
-                elif get_participation(user.id, event.id):
-                    st.error("Вы уже участвовали в этом мероприятии")
-                else:
-                    add_participation(user.id, event.id, event.duration)
-                    st.success(f"Участие в {event.name} подтверждено! Получено часов: {event.duration}")
-                    st.balloons()
-                    st.rerun()
-    with tab2:
-        qr_data = st.text_input("Введите данные QR-кода")
-        if qr_data and st.button("Подтвердить участие"):
-            if not validate_qr_data(qr_data):
-                st.error("QR-код не от Alumni Club Connect")
-            else:
-                event = get_event_by_qr(qr_data)
-                if not event:
-                    st.error("Мероприятие не найдено")
-                elif get_participation(user.id, event.id):
-                    st.error("Вы уже участвовали в этом мероприятии")
-                else:
-                    add_participation(user.id, event.id, event.duration)
-                    st.success(f"Участие в {event.name} подтверждено! Получено часов: {event.duration}")
-                    st.balloons()
-                    st.rerun()
+                add_participation(user.id, event.id, event.duration)
+                st.success(f"Участие в {event.name} подтверждено! Получено часов: {event.duration}")
+                st.balloons()
+                st.rerun()
     st.subheader("📊 История участия")
     participations = get_my_participations(user.id)
     if participations:

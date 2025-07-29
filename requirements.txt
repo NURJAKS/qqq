@@ -3,7 +3,5 @@ sqlalchemy
 passlib[bcrypt]
 pandas
 qrcode[pil]
-pyzbar
-opencv-python-headless
 pillow
 reportlab
