@@ -150,7 +150,6 @@ def get_user_by_email(email):
 
 def create_event(name, description, event_date, duration, organizer_id):
     with SessionLocal() as db:
-        # Сначала создаём мероприятие с временным qr_code_data
         event = Event(
             name=name,
             description=description,
@@ -162,11 +161,11 @@ def create_event(name, description, event_date, duration, organizer_id):
         db.add(event)
         db.commit()
         db.refresh(event)
-        # Теперь генерируем QR-код с уникальным event.id
-        qr_data, qr_b64, qr_bytes = generate_qr_code(event.id)
+        event_id = event.id  # Сохраняем id до закрытия сессии
+        qr_data, qr_b64, qr_bytes = generate_qr_code(event_id)
         event.qr_code_data = qr_data
         db.commit()
-        return event, qr_b64, qr_data, qr_bytes
+        return event_id, qr_b64, qr_data, qr_bytes
 
 def get_events():
     with SessionLocal() as db:
@@ -331,11 +330,11 @@ def organizer_dashboard():
         duration = st.number_input("Продолжительность (часы)", min_value=0.5, max_value=24.0, step=0.5)
         if st.button("Создать мероприятие"):
             dt = datetime.combine(event_date, event_time)
-            event, qr_b64, qr_data, qr_bytes = create_event(name, description, dt, duration, user.id)
+            event_id, qr_b64, qr_data, qr_bytes = create_event(name, description, dt, duration, user.id)
             st.success("Мероприятие создано успешно!")
             st.subheader("QR-код для мероприятия")
             st.image(qr_bytes, caption="QR-код для сканирования участниками")
-            st.download_button("Скачать QR-код", data=qr_bytes, file_name=f"qr_code_{event.id}.png", mime="image/png")
+            st.download_button("Скачать QR-код", data=qr_bytes, file_name=f"qr_code_{event_id}.png", mime="image/png")
             st.code(f"Данные QR-кода: {qr_data}")
     with tab2:
         st.subheader("📅 Мои мероприятия")
