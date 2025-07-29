@@ -10,9 +10,6 @@ from sqlalchemy.orm import sessionmaker, declarative_base, relationship
 from sqlalchemy import Column, Integer, String, DateTime, Float, ForeignKey
 from passlib.context import CryptContext
 import uuid
-import numpy as np
-import cv2
-from pyzbar import pyzbar
 from reportlab.lib.pagesizes import A4, landscape
 from reportlab.platypus import SimpleDocTemplate, Paragraph, Spacer
 from reportlab.lib.styles import getSampleStyleSheet, ParagraphStyle
@@ -83,17 +80,6 @@ def generate_qr_code(event_id):
     img_bytes = buf.getvalue()
     img_b64 = base64.b64encode(img_bytes).decode()
     return qr_data, img_b64, img_bytes
-
-def decode_qr_from_image(image_data):
-    try:
-        nparr = np.frombuffer(image_data, np.uint8)
-        img = cv2.imdecode(nparr, cv2.IMREAD_COLOR)
-        decoded = pyzbar.decode(img)
-        if decoded:
-            return decoded[0].data.decode('utf-8')
-        return None
-    except Exception:
-        return None
 
 def validate_qr_data(qr_data):
     return qr_data and qr_data.startswith("alumni_club_event_")
