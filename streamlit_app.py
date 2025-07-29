@@ -150,10 +150,19 @@ def get_user_by_email(email):
 
 def create_event(name, description, event_date, duration, organizer_id):
     with SessionLocal() as db:
-        event = Event(name=name, description=description, date=event_date, duration=duration, organizer_id=organizer_id)
+        # Сначала создаём мероприятие с временным qr_code_data
+        event = Event(
+            name=name,
+            description=description,
+            date=event_date,
+            duration=duration,
+            organizer_id=organizer_id,
+            qr_code_data="temp"
+        )
         db.add(event)
         db.commit()
         db.refresh(event)
+        # Теперь генерируем QR-код с уникальным event.id
         qr_data, qr_b64, qr_bytes = generate_qr_code(event.id)
         event.qr_code_data = qr_data
         db.commit()
